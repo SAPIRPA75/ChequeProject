@@ -2,18 +2,30 @@ from PIL import Image
 import pytesseract
 import numpy as np
 import cv2
+pytesseract.pytesseract.tesseract_cmd = r'C:\Users\Sapir\PycharmProjects\cheque_detection\Tesseract-OCR\tesseract.exe'
 
 
-
-def Extract_string_From_Image(filename):
-    img = np.array(Image.open(filename))
-    pytesseract.pytesseract.tesseract_cmd = r'C:\Program Files\Tesseract-OCR\tesseract.exe'
-    text = pytesseract.image_to_string(img)
+def Extract_string_From_Image(Proccessed_img):
+    text = pytesseract.image_to_string(Proccessed_img)
     return text
 
-filename = 'image_01.png'
-pytesseract.pytesseract.tesseract_cmd = r'C:\Users\Sapir\PycharmProjects\cheque_detection\Tesseract-OCR\tesseract.exe'
-image = cv2.imread(filename)
+def get_grayscale(image):
+    return cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+
+def Remove_Noise(image):
+    return cv2.medianBlur(image,5)
+
+def thresholding(image):
+    return cv2.threshold(image,0,255,cv2.THRESH_BINARY + cv2.THRESH_OTSU)[1]
+
+
+image = cv2.imread('image_01.png')
+Proccessed_img = get_grayscale(image)
+Proccessed_img = thresholding(Proccessed_img)
+Proccessed_img = Remove_Noise(Proccessed_img)
+text_From_Image = Extract_string_From_Image(Proccessed_img)
+print(text_From_Image)
+
 cv2.imshow("The Image is:",image)
 cv2.waitKey(0)
 results = pytesseract.image_to_data(image, output_type=pytesseract.Output.DICT)
