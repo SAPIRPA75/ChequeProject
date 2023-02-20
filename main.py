@@ -4,7 +4,41 @@ import numpy as np
 import cv2
 import sys
 from matplotlib import pyplot as plt
+import PySimpleGUI as sg
 pytesseract.pytesseract.tesseract_cmd = r'C:\Users\sapirpa\PycharmProjects\tesseract.exe'
+
+def Start_GUI():
+    layout = [[sg.Text("Welcome To Cheque Identifier app , Upload your Cheque bank :\n")], [sg.Button("Leumi Bank")],
+              [sg.Button("BinLeumi Bank")], [sg.Button("Discount Bank")], [sg.Button("Mizrahi Bank")],
+              [sg.Button("Pohalim Bank")], [sg.Text("Written By Sapir Paley , ID : 314971458")]]
+    # Create the window
+    window = sg.Window("Cheque Identifier For Dr.Amir Hendlman ", layout)
+
+    # Create an event loop
+    while True:
+        event, values = window.read()
+        # End program if user closes window or
+        # presses the OK button
+        match event:
+            case "Leumi Bank":
+                Chosed_Bank = "Leumi_cheque.jpg"
+                break
+            case "BinLeumi Bank":
+                Chosed_Bank = "BinLeumi_Bank_Cheque.jpg"
+                break
+            case "Discount Bank":
+                Chosed_Bank = "Discount_bank_cheque.jpg"
+                break
+            case "Mizrahi Bank":
+                Chosed_Bank = "Mizrahi_bank_cheque.jpg"
+                break
+            case "Pohalim Bank":
+                Chosed_Bank = "Pohalim_bank_cheque.jpeg"
+                break
+        if event == sg.WIN_CLOSED:
+            break
+    window.close()
+    return Chosed_Bank
 
 
 def Extract_string_From_Image(Proccessed_img):
@@ -107,15 +141,21 @@ def Init(Bank_Cheque):
     result= Find_Bank_Symbole(Bank_Cheque, template_symbole)
     result = Find_Bank_Name(result,template_Name,Bank_Cheque)
     result = Find_Bank_Sum(result,template_sum,Bank_Cheque)
+    layout = [[sg.Text("Thank you, Would you like to upload a different cheque ? \n")], [sg.Button("YES!")],[sg.Button("GoodBye!")],[sg.Text("Written By Sapir Paley , ID : 314971458")]]
+    # Create the window
+    window = sg.Window("Cheque Identifier For Dr.Amir Hendlman ", layout)
+    event, values = window.read()
+    if event == "YES!":
+        window.close()
+        Chosed_Bank = Start_GUI()
+        Init(Chosed_Bank)
+    else:
+        window.close()
 
 
+Chosed_Bank=Start_GUI()
+Init(Chosed_Bank)
 
-
-Init("Leumi_cheque.jpg")
-Init("BinLeumi_Bank_Cheque.jpg")
-Init("Discount_bank_cheque.jpg")
-Init("Mizrahi_bank_cheque.jpg")
-Init("Pohalim_bank_cheque.jpeg")
 '''''
 #Find symboles
 img = cv2.imread('Leumi_cheque.jpg',0)
