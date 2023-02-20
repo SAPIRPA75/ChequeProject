@@ -2,8 +2,9 @@ from PIL import Image
 import pytesseract
 import numpy as np
 import cv2
+import sys
 from matplotlib import pyplot as plt
-pytesseract.pytesseract.tesseract_cmd = r'C:\Users\Sapir\PycharmProjects\cheque_detection\Tesseract-OCR\tesseract.exe'
+pytesseract.pytesseract.tesseract_cmd = r'C:\Users\sapirpa\PycharmProjects\tesseract.exe'
 
 
 def Extract_string_From_Image(Proccessed_img):
@@ -11,7 +12,7 @@ def Extract_string_From_Image(Proccessed_img):
     return text
 
 def get_grayscale(image):
-    return cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+    return cv2.cvtColor(image,cv2.COLOR_BGR2GRAY)
 
 def Remove_Noise(image):
     return cv2.medianBlur(image,5)
@@ -19,123 +20,177 @@ def Remove_Noise(image):
 def thresholding(image):
     return cv2.threshold(image,0,255,cv2.THRESH_BINARY + cv2.THRESH_OTSU)[1]
 
+def Find_Bank_Sum (Image,template_Sum,Bank_Cheque):
+    img = cv2.imread(Bank_Cheque, 0)
+    img = thresholding(img)
+    img = Remove_Noise(img)
+    template = cv2.imread(template_Sum, 0)
+    template = thresholding(template)
+    template = Remove_Noise(template)
+    w, h = template.shape[::-1]
+    # Apply template Matching = 'cv2.TM_SQDIFF' = '0'
+    res = cv2.matchTemplate(img, template, 0)
+    min_val, max_val, min_loc, max_loc = cv2.minMaxLoc(res)
+    # If the method is TM_SQDIFF or TM_SQDIFF_NORMED, take minimum
+    top_left = min_loc
+    bottom_right = (top_left[0] + w, top_left[1] + h)
+    Result_Boundries_img = cv2.rectangle(Image, top_left, bottom_right, (0, 0, 255), 2)
+    cv2.imshow("The Bank Symbole:", Result_Boundries_img)
+    cv2.waitKey(5000)
+    cv2.destroyAllWindows()
+    return Result_Boundries_img
+def Find_Bank_Name(Image,template_Name,Bank_Cheque):
+    img = cv2.imread(Bank_Cheque, 0)
+    img = thresholding(img)
+    img = Remove_Noise(img)
+    template = cv2.imread(template_Name, 0)
+    template = thresholding(template)
+    template = Remove_Noise(template)
+    w, h = template.shape[::-1]
+    # Apply template Matching = 'cv2.TM_SQDIFF' = '0'
+    res = cv2.matchTemplate(img, template, 0)
+    min_val, max_val, min_loc, max_loc = cv2.minMaxLoc(res)
+    # If the method is TM_SQDIFF or TM_SQDIFF_NORMED, take minimum
+    top_left = min_loc
+    bottom_right = (top_left[0] + w, top_left[1] + h)
+    Result_Boundries_img = cv2.rectangle(Image, top_left, bottom_right, 255, 2)
+    cv2.imshow("The Bank Symbole:", Result_Boundries_img)
+    cv2.waitKey(5000)
+    cv2.destroyAllWindows()
+    return Result_Boundries_img
+def Find_Bank_Symbole(Bank_Cheque,template_symbole):
+    img = cv2.imread(Bank_Cheque, 0)
+    template = cv2.imread(template_symbole, 0)
+    img = thresholding(img)
+    img = Remove_Noise(img)
+    template=thresholding(template)
+    template=Remove_Noise(template)
+    w, h = template.shape[::-1]
+    # Apply template Matching = 'cv2.TM_SQDIFF' = '0'
+    res = cv2.matchTemplate(img, template, 0)
+    min_val, max_val, min_loc, max_loc = cv2.minMaxLoc(res)
+    # If the method is TM_SQDIFF or TM_SQDIFF_NORMED, take minimum
+    top_left = min_loc
+    bottom_right = (top_left[0] + w, top_left[1] + h)
+    original_img = cv2.imread(Bank_Cheque)
+    Result_Boundries_img = cv2.rectangle(original_img, top_left, bottom_right, 255, 2)
+    cv2.imshow("The Bank Symbole:", Result_Boundries_img)
+    cv2.waitKey(5000)
+    cv2.destroyAllWindows()
+    return Result_Boundries_img
+
+def Init(Bank_Cheque):
+
+    match Bank_Cheque:
+
+        case "BinLeumi_Bank_Cheque.jpg":
+                template_symbole = "BinLeumi_Bank_symbole.jpg"
+                template_Name= "BinLeumi_Bank_Name.jpg"
+                template_sum = "BinLeumi_Bank_sum.jpg"
+        case "Discount_bank_cheque.jpg":
+              template_symbole = "Discount_bank_symbole.jpg"
+              template_Name = "Discount_bank_symbole.jpg"
+              template_sum = "Discount_bank_sum.jpg"
+        case "Leumi_cheque.jpg":
+            template_symbole = "Leumi_cheque_Symbole.png"
+            template_Name = "Leumi_cheque_Name.png"
+            template_sum = "leumi_template_sum.png"
+        case "Mizrahi_bank_cheque.jpg":
+            template_symbole = "Mizrahi_bank_cheque_Symbole.png"
+            template_Name = "Mizrahi_bank_cheque_Name.png"
+            template_sum = "Mizrahi_bank_Sum.jpg"
+        case "Pohalim_bank_cheque.jpeg":
+            template_symbole = "Pohalim_bank_symbole.jpg"
+            template_Name = "Pohalim_bank_Name.jpg"
+            template_sum = "Pohalim_bank_Sum.jpg"
+
+    result= Find_Bank_Symbole(Bank_Cheque, template_symbole)
+    result = Find_Bank_Name(result,template_Name,Bank_Cheque)
+    result = Find_Bank_Sum(result,template_sum,Bank_Cheque)
+
+
+
+
+Init("Leumi_cheque.jpg")
+Init("BinLeumi_Bank_Cheque.jpg")
+Init("Discount_bank_cheque.jpg")
+Init("Mizrahi_bank_cheque.jpg")
+Init("Pohalim_bank_cheque.jpeg")
 '''''
-image = cv2.imread('big_image.jpg')
-template = cv2.imread('template.jpg')
-
-image_gray = cv2.rgb2gray(image)
-template_gray = cv2.rgb2gray(template)
-
-result = cv2.match_template(image_gray, template_gray)
-ij = np.unravel_index(np.argmax(result), result.shape)
-x, y = ij[::-1]
-'''''
-
-
-'''''
-img_rgb = cv2.imread('cheque_Example.jpg')
-img_gray = cv2.cvtColor(img_rgb, cv2.COLOR_BGR2GRAY)
-cv2.imshow("BGR2GREY", img_gray)
-cv2.waitKey(0)
-template = cv2.imread('tamplate-2.png')
-template_gray = cv2.cvtColor(template, cv2.COLOR_BGR2GRAY)
-cv2.imshow("BGR2GREY", template_gray)
-cv2.waitKey(0)
-w, h = template_gray.shape[::-1]
-res = cv2.matchTemplate(img_gray,template_gray,cv2.TM_CCOEFF_NORMED)
-threshold = 0.2
-loc = np.where( res >= threshold)
-for pt in zip(*loc[::-1]):
-    cv2.rectangle(img_rgb, pt, (pt[0] + w, pt[1] + h), (0,0,255), 2)
-cv2.imwrite('res.png',img_rgb)
-cv2.imshow("The final is:",img_rgb)
-cv2.waitKey(0)
-
-'''''
-img = cv2.imread('Mizrahi_bank_cheque.jpg',0)
+#Find symboles
+img = cv2.imread('Leumi_cheque.jpg',0)
+#img= get_grayscale(img)
+img = thresholding(img)
+img=Remove_Noise(img)
 img2 = img.copy()
-template = cv2.imread('Mizrahi_bank_cheque_template.png',0)
+template = cv2.imread('Leumi_cheque_Symbole.png',0)
+template = thresholding(template)
+template=Remove_Noise(template)
 w, h = template.shape[::-1]
 
 # Apply template Matching = 'cv2.TM_SQDIFF' = '0'
 res = cv2.matchTemplate(img,template,0)
 min_val, max_val, min_loc, max_loc = cv2.minMaxLoc(res)
 
- # If the method is TM_SQDIFF or TM_SQDIFF_NORMED, take minimum
+# If the method is TM_SQDIFF or TM_SQDIFF_NORMED, take minimum
 top_left = min_loc
 bottom_right = (top_left[0] + w, top_left[1] + h)
-original_img = cv2.imread('Mizrahi_bank_cheque.jpg')
-result = cv2.rectangle(original_img,top_left, bottom_right, 255, 2)
-cv2.imshow("Result",result)
-cv2.waitKey(0)
+original_img = cv2.imread('Leumi_cheque.jpg')
+Result_Boundries_img = cv2.rectangle(original_img,top_left, bottom_right, 255, 2)
+cv2.imshow("The Bank Symbole:",Result_Boundries_img)
+cv2.waitKey(5000)
+cv2.destroyAllWindows()
+#cv2.imwrite("New_Saved_img",result)
+
+
+#Find Bank Name
+#img = cv2.imread('Mizrahi_bank_cheque.jpg',0)
+#img= get_grayscale(img)
+img = thresholding(img)
+img=Remove_Noise(img)
+img2 = img.copy()
+template = cv2.imread('Leumi_cheque_Name.png',0)
+template = thresholding(template)
+template=Remove_Noise(template)
+w, h = template.shape[::-1]
+
+# Apply template Matching = 'cv2.TM_SQDIFF' = '0'
+res = cv2.matchTemplate(img,template,0)
+min_val, max_val, min_loc, max_loc = cv2.minMaxLoc(res)
+
+# If the method is TM_SQDIFF or TM_SQDIFF_NORMED, take minimum
+top_left = min_loc
+bottom_right = (top_left[0] + w, top_left[1] + h)
+#original_img = cv2.imread('Leumi_cheque.jpg')
+Result_Boundries_img = cv2.rectangle(Result_Boundries_img,top_left, bottom_right, 255, 2)
+cv2.imshow("The Bank Name:",Result_Boundries_img)
+cv2.waitKey(5000)
 cv2.destroyAllWindows()
 
-'''''
- plt.subplot(121),plt.imshow(res,cmap = 'gray')
- plt.title('Matching Result'), plt.xticks([]), plt.yticks([])
- plt.subplot(122),plt.imshow(img,cmap = 'gray')
- plt.title('Detected Point'), plt.xticks([]), plt.yticks([])
-plt.suptitle(meth)
-plt.show()
-'''''
 
-'''''
-image = cv2.imread('cheque_Example.jpg ')
-Proccessed_img = get_grayscale(image)
-Proccessed_img = thresholding(Proccessed_img)
-Proccessed_img = Remove_Noise(Proccessed_img)
-text_From_Image = Extract_string_From_Image(Proccessed_img)
-print(text_From_Image)
+#Find Bank sum
+#img = cv2.imread('cheque_Example.jpg',0)
+#img= get_grayscale(img)
+img = thresholding(img)
+img=Remove_Noise(img)
+img2 = img.copy()
+template = cv2.imread('leumi_template_sum.png',0)
+template = thresholding(template)
+template=Remove_Noise(template)
+w, h = template.shape[::-1]
 
-cv2.imshow("The Image is:",image)
-cv2.waitKey(0)
-results = pytesseract.image_to_data(image, output_type=pytesseract.Output.DICT)
+# Apply template Matching = 'cv2.TM_SQDIFF' = '0'
+res = cv2.matchTemplate(img,template,0)
+min_val, max_val, min_loc, max_loc = cv2.minMaxLoc(res)
 
-for i in range(0, len(results["text"])):
-   x = results["left"][i]
-   y = results["top"][i]
-
-   w = results["width"][i]
-   h = results["height"][i]
-
-   text = results["text"][i]
-   conf = int(results["conf"][i])
-
-   if conf > 70:
-       text = "".join([c if ord(c) < 128 else "" for c in text]).strip()
-       cv2.rectangle(image, (x, y), (x + w, y + h), (0, 255, 0), 2)
-       cv2.putText(image, text, (x, y - 10),
-cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 0, 200), 2)
-
-cv2.imshow("The Boundries:",image)
-cv2.waitKey(0)
-
-#Proccessed_img = Extract_string_From_Image('image_01.png')
-#print(Proccessed_img)
-
-
-#img = cv2.imread("image_noise.png")
-#cv2.imshow('Un- Normalized Image', img)
-#cv2.waitKey(0)
-#cv2norm_img = np.zeros((img.shape[0], img.shape[1]))
-#norm = np.zeros((800,800))
-#final = cv2.normalize(img,  norm, 0, 255, cv2.NORM_MINMAX)
-#cv2.imshow('Normalized Image', final)
-#if (not(cv2.imwrite('city_normalized.jpg', final))):
-#    print("Image didnt saved")
-#img = cv2.threshold(img1, 100, 255, cv2.THRESH_BINARY)[1]
-#img = cv2.GaussianBlur(img, (1, 1), 0)
-#cv2.imshow('Un- Normalized Image', img)
-#cv2.waitKey(0)
-
-
-
-
-#import cv2norm_img = np.zeros((img1.shape[0], img1.shape[1]))
-#img = cv2.normalize(img1, norm_img, 0, 255, cv2.NORM_MINMAX)
-#img = cv2.threshold(img1, 100, 255, cv2.THRESH_BINARY)[1]
-#img = cv2.GaussianBlur(img, (1, 1), 0)
-
-
-#print(text)
+# If the method is TM_SQDIFF or TM_SQDIFF_NORMED, take minimum
+top_left = min_loc
+bottom_right = (top_left[0] + w, top_left[1] + h)
+original_img = cv2.imread('cheque_Example.jpg')
+Result_Boundries_img = cv2.rectangle(Result_Boundries_img,top_left, bottom_right, (0, 0, 255), 2)
+cv2.imshow("The Bank Sum",Result_Boundries_img)
+cv2.waitKey(5000)
+cv2.destroyAllWindows()
 '''
+
+
